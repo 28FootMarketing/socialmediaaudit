@@ -1,9 +1,11 @@
 from fpdf import FPDF
 import streamlit as st
+import io
+import tempfile
+import os
 
 # Streamlit Config
 st.set_page_config(page_title="Social Media Audit", layout="wide")
-
 st.title("🏀 Social Media Audit Tool for Student-Athletes & Coaches")
 
 # Step 1: Input
@@ -28,19 +30,23 @@ audit_level = st.selectbox("Choose Depth", ["Quick Check", "Standard", "Deep Div
 
 # Step 4: Generate
 st.header("Step 4: Generate GPT Audit + PDF Report")
-
 if st.button("Run My Audit"):
+    # Input validation
+    if not any([instagram, twitter, tiktok]):
+        st.error("Please enter at least one social media handle.")
+        st.stop()
+    
     st.success("✅ Processing your personalized report...")
-
+    
     # 🧠 Mock GPT Summary (Replace with GPT API call if needed)
-    athlete_name = instagram or "Sample Athlete"
-    gpt_summary = f"""
-{athlete_name}'s Social Media Audit Report
+    athlete_name = instagram or twitter or tiktok or "Sample Athlete"
+    
+    # Clean text for PDF (remove emojis that might cause issues)
+    gpt_summary = f"""{athlete_name}'s Social Media Audit Report
 
 Name: {athlete_name}
 Sport: Basketball
 Graduation Year: 2025
-
 Instagram Followers: 2,145
 Engagement Rate: 3.2%
 Red Flags: 2 captions with slang
@@ -61,26 +67,39 @@ Top 3 Recommendations:
 Next Step Playbook:
 - Update bio this week
 - Clean up older captions
-- Launch a weekly “Game Ready” TikTok series
-- Ask your coach to review your profiles
-"""
+- Launch a weekly "Game Ready" TikTok series
+- Ask your coach to review your profiles"""
 
+    # Display summary
     st.text_area("📋 GPT Summary", gpt_summary, height=300)
-
-    # PDF Generator
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", '', 12)
-    for line in gpt_summary.split("\n"):
-        pdf.multi_cell(0, 10, line)
-    pdf_file_path = "Social_Media_Audit_Report.pdf"
-    pdf.output(pdf_file_path)
-
-    with open(pdf_file_path, "rb") as file:
+    
+    # PDF Generation with better error handling
+    try:
+        # Create PDF in memory
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", '', 12)
+        
+        # Split text into lines and add to PDF
+        for line in gpt_summary.split("\n"):
+            # Handle empty lines
+            if line.strip():
+                pdf.multi_cell(0, 8, line.encode('latin1', 'ignore').decode('latin1'))
+            else:
+                pdf.ln(4)  # Add some space for empty lines
+        
+        # Generate PDF as bytes
+        pdf_bytes = pdf.output(dest='S').encode('latin1')
+        
+        # Provide download button
         st.download_button(
             label="📥 Download Your PDF Report",
-            data=file,
-            file_name=pdf_file_path,
+            data=pdf_bytes,
+            file_name=f"Social_Media_Audit_Report_{athlete_name}.pdf",
             mime="application/pdf"
         )
+        
+    except Exception as e:
+        st.error(f"Error generating PDF: {str(e)}")
+        st.info("You can still copy the text report above.")
