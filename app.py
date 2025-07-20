@@ -260,12 +260,12 @@ Brand Consistency Score: {analysis_results['consistency']}/100
 Risk Assessment: {analysis_results['risk_level']}
 
 Key Insights:"""
-        
-        for insight in analysis_results['insights']:
-            gpt_summary += f"""
+    
+    for insight in analysis_results['insights']:
+        gpt_summary += f"""
 • {insight}"""
-            
-        gpt_summary += """
+        
+    gpt_summary += """
 
 === PLATFORM ANALYSIS ==="""
 
