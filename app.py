@@ -171,6 +171,76 @@ if st.button("🚀 Run Complete Social Media Audit"):
     # Generate athlete name from first available handle
     athlete_name = next((handles[0] for handles in all_handles if handles), "Sample Athlete")
     
+    # Rule-based analysis engine
+    def analyze_social_media_presence():
+        # Calculate scores based on actual data
+        platform_diversity_score = min(100, active_platforms * 12)
+        account_volume_score = min(100, total_handles * 8)
+        consistency_score = calculate_consistency_score()
+        overall_score = int((platform_diversity_score + account_volume_score + consistency_score) / 3)
+        
+        # Risk assessment based on patterns
+        risk_level = assess_risk_level()
+        
+        # Generate insights
+        insights = generate_insights()
+        
+        return {
+            'overall_score': overall_score,
+            'platform_diversity': platform_diversity_score,
+            'account_volume': account_volume_score,
+            'consistency': consistency_score,
+            'risk_level': risk_level,
+            'insights': insights
+        }
+    
+    def calculate_consistency_score():
+        # Check username consistency across platforms
+        all_usernames = [handle for handles in all_handles for handle in handles]
+        if not all_usernames:
+            return 50
+        
+        # Simple consistency check - how many handles share common elements
+        base_name = all_usernames[0].lower().replace('@', '').replace('_', '').replace('.', '')
+        consistent_count = sum(1 for username in all_usernames 
+                             if any(part in username.lower() for part in base_name.split() if len(part) > 2))
+        
+        return min(100, (consistent_count / len(all_usernames)) * 100)
+    
+    def assess_risk_level():
+        # Low risk factors
+        if active_platforms <= 6 and total_handles <= 10:
+            return "LOW"
+        elif active_platforms <= 9 and total_handles <= 15:
+            return "MEDIUM" 
+        else:
+            return "HIGH - Consider consolidating accounts"
+    
+    def generate_insights():
+        insights = []
+        
+        # Platform-specific insights
+        if len(instagram_handles) > 2:
+            insights.append("Multiple Instagram accounts detected - consider consolidating for better engagement")
+        if linkedin_handles and not facebook_handles:
+            insights.append("Strong professional presence on LinkedIn - good for recruitment")
+        if len(tiktok_handles) > 0 and len(youtube_handles) == 0:
+            insights.append("Consider expanding to YouTube for longer-form content")
+        if active_platforms < 3:
+            insights.append("Limited platform presence - consider expanding to key platforms")
+        if len(discord_handles) > 0 or len(twitch_handles) > 0:
+            insights.append("Gaming presence detected - ensure content aligns with athlete brand")
+        
+        # General insights based on coverage
+        main_platforms = len(instagram_handles) + len(twitter_handles) + len(tiktok_handles)
+        if main_platforms == 0:
+            insights.append("Missing presence on major platforms (Instagram, Twitter, TikTok)")
+        
+        return insights
+    
+    # Run analysis
+    analysis_results = analyze_social_media_presence()
+    
     # Create comprehensive report for all handles
     gpt_summary = f"""{athlete_name}'s Multi-Platform Social Media Audit Report
 
@@ -181,7 +251,21 @@ Graduation Year: 2025
 Audit Level: {audit_level}
 Total Accounts Audited: {total_handles}
 Platforms Covered: {active_platforms}
-Overall Digital Presence Score: {85 + active_platforms}%
+Overall Digital Presence Score: {analysis_results['overall_score']}%
+
+=== INTELLIGENT ANALYSIS ===
+Platform Diversity Score: {analysis_results['platform_diversity']}/100
+Account Management Score: {analysis_results['account_volume']}/100  
+Brand Consistency Score: {analysis_results['consistency']}/100
+Risk Assessment: {analysis_results['risk_level']}
+
+Key Insights:"""
+        
+        for insight in analysis_results['insights']:
+            gpt_summary += f"""
+• {insight}"""
+            
+        gpt_summary += """
 
 === PLATFORM ANALYSIS ==="""
 
